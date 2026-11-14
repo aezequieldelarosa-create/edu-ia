@@ -1,0 +1,540 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDU AI - Asistente Educativo</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0d0b14;
+    color: white;
+}
+
+header {
+    background: #171323;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #35264c;
+}
+
+header h1 {
+    color: #b58aff;
+    margin: 0;
+}
+
+header p {
+    color: #aaa;
+    font-size: 12px;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 15px;
+    background: #803ee5;
+    color: white;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #a16aff;
+}
+
+.contenedor {
+    display: flex;
+    min-height: calc(100vh - 85px);
+}
+
+aside {
+    width: 230px;
+    background: #171323;
+    padding: 20px;
+    border-right: 1px solid #35264c;
+}
+
+aside h3 {
+    color: #b58aff;
+    font-size: 14px;
+}
+
+.materia {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    text-align: left;
+    background: #29213a;
+}
+
+.materia.activa {
+    background: #803ee5;
+}
+
+main {
+    flex: 1;
+    padding: 35px 20px;
+    max-width: 100%;
+}
+
+.bienvenida {
+    text-align: center;
+    margin: 30px auto;
+    max-width: 650px;
+}
+
+.bienvenida h2 {
+    font-size: 34px;
+}
+
+.bienvenida span {
+    color: #b58aff;
+}
+
+.bienvenida p {
+    color: #aaa;
+}
+
+.tarjetas {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.tarjeta {
+    background: #201a2e;
+    border: 1px solid #403052;
+    padding: 17px;
+    border-radius: 12px;
+    text-align: left;
+    color: white;
+}
+
+.tarjeta:hover {
+    border-color: #a16aff;
+}
+
+#chat {
+    max-width: 750px;
+    margin: auto;
+}
+
+.mensaje {
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 12px;
+    background: #211a30;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.usuario {
+    background: #38245b;
+    margin-left: 12%;
+}
+
+.asistente {
+    margin-right: 12%;
+}
+
+#formulario {
+    max-width: 750px;
+    margin: 25px auto;
+    display: flex;
+    gap: 10px;
+    background: #211a30;
+    padding: 12px;
+    border: 1px solid #493461;
+    border-radius: 12px;
+}
+
+textarea {
+    flex: 1;
+    resize: vertical;
+    min-height: 45px;
+    max-height: 140px;
+    background: transparent;
+    color: white;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    padding: 10px;
+}
+
+#estado {
+    text-align: center;
+    color: #b58aff;
+    min-height: 20px;
+}
+
+footer {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+    font-size: 12px;
+}
+
+body.claro {
+    background: #f4f0fa;
+    color: #21182e;
+}
+
+body.claro header,
+body.claro aside {
+    background: #e7def3;
+}
+
+body.claro .tarjeta,
+body.claro .mensaje,
+body.claro #formulario {
+    background: #e9e0f5;
+    color: #21182e;
+}
+
+body.claro textarea {
+    color: #21182e;
+}
+
+@media(max-width:700px) {
+    .contenedor {
+        display: block;
+    }
+
+    aside {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #35264c;
+    }
+
+    .tarjetas {
+        grid-template-columns: 1fr;
+    }
+
+    .bienvenida h2 {
+        font-size: 27px;
+    }
+
+    #formulario {
+        flex-direction: column;
+    }
+
+    .usuario {
+        margin-left: 3%;
+    }
+
+    .asistente {
+        margin-right: 3%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div>
+        <h1>✦ EDU AI</h1>
+        <p>ASISTENTE INTELIGENTE EDUCATIVO</p>
+    </div>
+
+    <button onclick="cambiarTema()">
+        ☼ Cambiar tema
+    </button>
+</header>
+
+<div class="contenedor">
+
+<aside>
+    <h3>📚 MATERIAS</h3>
+
+    <button class="materia activa"
+    onclick="seleccionarMateria(this,'General')">
+    ✦ General</button>
+
+    <button class="materia"
+    onclick="seleccionarMateria(this,'Matemática')">
+    ∑ Matemática</button>
+
+    <button class="materia"
+    onclick="seleccionarMateria(this,'Historia')">
+    📜 Historia</button>
+
+    <button class="materia"
+    onclick="seleccionarMateria(this,'Literatura')">
+    📖 Literatura</button>
+
+    <button class="materia"
+    onclick="seleccionarMateria(this,'Biología')">
+    🧬 Biología</button>
+
+    <button class="materia"
+    onclick="seleccionarMateria(this,'Inglés')">
+    🌎 Inglés</button>
+
+    <button class="materia"
+    onclick="seleccionarMateria(this,'Geografía')">
+    🌍 Geografía</button>
+
+    <hr>
+
+    <button onclick="nuevoChat()">
+        + Nueva consulta
+    </button>
+
+    <button onclick="borrarHistorial()">
+        🗑 Borrar historial
+    </button>
+</aside>
+
+<main>
+
+<section class="bienvenida" id="bienvenida">
+    <h2>¿Qué querés aprender <span>hoy?</span></h2>
+
+    <p>
+    Tu compañero de estudio para todas las materias.
+    Hacé preguntas, pedí resúmenes y practicá.
+    </p>
+
+    <div class="tarjetas">
+
+        <button class="tarjeta"
+        onclick="preguntaEjemplo('Explicame la Revolución Industrial')">
+        📜 <b>Historia</b>
+        <p>Explicaciones sencillas de temas históricos.</p>
+        </button>
+
+        <button class="tarjeta"
+        onclick="preguntaEjemplo('Explicame las ecuaciones de primer grado')">
+        ∑ <b>Matemática</b>
+        <p>Aprendé a resolver ejercicios.</p>
+        </button>
+
+        <button class="tarjeta"
+        onclick="preguntaEjemplo('Haceme un resumen sobre la célula')">
+        🧬 <b>Biología</b>
+        <p>Resúmenes para estudiar.</p>
+        </button>
+
+        <button class="tarjeta"
+        onclick="preguntaEjemplo('Dame ejercicios de inglés')">
+        🌎 <b>Inglés</b>
+        <p>Practicá con diferentes actividades.</p>
+        </button>
+
+    </div>
+</section>
+
+<div id="chat"></div>
+
+<p id="estado"></p>
+
+<form id="formulario">
+    <textarea id="pregunta"
+    placeholder="Escribí tu pregunta..."
+    maxlength="2000" required></textarea>
+
+    <button type="submit">➤ Enviar</button>
+</form>
+
+<div style="text-align:center">
+    <button onclick="modoResumen()">▤ Crear resumen</button>
+    <button onclick="modoTraducir()">🌎 Traducir</button>
+</div>
+
+<footer>
+    EDU AI © 2026 - Aprender es más fácil cuando preguntás.
+</footer>
+
+</main>
+</div>
+
+<script>
+
+// Materia seleccionada
+let materia = "General";
+
+// Historial de conversación
+let historial = [];
+
+// Modo de consulta
+let modo = "explicar";
+
+// Seleccionar materia
+function seleccionarMateria(boton, nombre) {
+    materia = nombre;
+
+    let botones = document.querySelectorAll(".materia");
+
+    botones.forEach(function(b) {
+        b.classList.remove("activa");
+    });
+
+    boton.classList.add("activa");
+
+    document.getElementById("estado").textContent =
+    "Materia seleccionada: " + nombre;
+}
+
+// Mostrar mensaje
+function mostrarMensaje(texto, tipo) {
+    let chat = document.getElementById("chat");
+
+    document.getElementById("bienvenida").style.display = "none";
+
+    let mensaje = document.createElement("div");
+
+    mensaje.className = "mensaje " + tipo;
+    mensaje.textContent = texto;
+
+    chat.appendChild(mensaje);
+
+    mensaje.scrollIntoView({behavior:"smooth"});
+}
+
+// Enviar consulta
+document.getElementById("formulario")
+.addEventListener("submit", function(evento) {
+
+    evento.preventDefault();
+
+    let pregunta = document.getElementById("pregunta");
+    let texto = pregunta.value.trim();
+
+    if (texto == "") {
+        alert("Escribí una pregunta primero.");
+        return;
+    }
+
+    if (texto.length > 2000) {
+        alert("La pregunta es demasiado larga.");
+        return;
+    }
+
+    mostrarMensaje(texto, "usuario");
+
+    historial.push("Pregunta: " + texto);
+
+    pregunta.value = "";
+
+    responder(texto);
+});
+
+// Conexión con el servidor de IA
+async function responder(texto) {
+
+    let estado = document.getElementById("estado");
+
+    estado.textContent = "EDU AI está pensando...";
+
+    try {
+
+        const respuesta = await fetch(
+            "http://localhost:3000/api/chat",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    question: texto,
+                    subject: materia,
+                    mode: modo,
+                    history: []
+                })
+            }
+        );
+
+        const datos = await respuesta.json();
+
+        if (!respuesta.ok) {
+            throw new Error(datos.error || "Error de conexión");
+        }
+
+        mostrarMensaje(datos.answer, "asistente");
+
+        historial.push("Respuesta: " + datos.answer);
+
+        estado.textContent = "Respuesta generada por EDU AI.";
+
+    } catch (error) {
+
+        mostrarMensaje(
+            "No se pudo conectar con la IA. El servidor debe estar encendido y publicado para utilizar esta función.",
+            "asistente"
+        );
+
+        estado.textContent = "Error de conexión.";
+    }
+}
+
+// Preguntas de ejemplo
+function preguntaEjemplo(texto) {
+    document.getElementById("pregunta").value = texto;
+    responderDesdeEjemplo(texto);
+}
+
+function responderDesdeEjemplo(texto) {
+    mostrarMensaje(texto, "usuario");
+    historial.push("Pregunta: " + texto);
+    responder(texto);
+}
+
+// Crear resumen
+function modoResumen() {
+    modo = "summary";
+
+    document.getElementById("estado").textContent =
+    "Modo resumen activado. Escribí o pegá un texto.";
+}
+
+// Traducir
+function modoTraducir() {
+    modo = "translate";
+
+    document.getElementById("estado").textContent =
+    "Modo traducción activado. Indicá a qué idioma traducir.";
+}
+
+// Nueva consulta
+function nuevoChat() {
+    document.getElementById("chat").innerHTML = "";
+
+    historial = [];
+
+    document.getElementById("bienvenida").style.display = "block";
+
+    document.getElementById("estado").textContent =
+    "Nueva consulta iniciada.";
+}
+
+// Borrar historial
+function borrarHistorial() {
+    nuevoChat();
+
+    document.getElementById("estado").textContent =
+    "Historial borrado.";
+}
+
+// Cambiar tema
+function cambiarTema() {
+    document.body.classList.toggle("claro");
+}
+
+</script>
+
+</body>
+</html>
