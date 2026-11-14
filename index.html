@@ -51,6 +51,11 @@ button:hover {
     background: #a16aff;
 }
 
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .contenedor {
     display: flex;
     min-height: calc(100vh - 85px);
@@ -83,7 +88,7 @@ aside h3 {
 main {
     flex: 1;
     padding: 35px 20px;
-    max-width: 100%;
+    min-width: 0;
 }
 
 .bienvenida {
@@ -204,6 +209,10 @@ body.claro #formulario {
 
 body.claro textarea {
     color: #21182e;
+}
+
+body.claro .materia {
+    color: white;
 }
 
 @media(max-width:700px) {
@@ -341,11 +350,15 @@ body.claro textarea {
 <p id="estado"></p>
 
 <form id="formulario">
+
     <textarea id="pregunta"
     placeholder="Escribí tu pregunta..."
     maxlength="2000" required></textarea>
 
-    <button type="submit">➤ Enviar</button>
+    <button id="enviar" type="submit">
+        ➤ Enviar
+    </button>
+
 </form>
 
 <div style="text-align:center">
@@ -362,6 +375,12 @@ body.claro textarea {
 
 <script>
 
+// DIRECCIÓN DEL SERVIDOR
+// Más adelante reemplazaremos esta dirección
+// por la dirección pública del servidor.
+
+const API_URL = "http://localhost:3000/api/chat";
+
 // Materia seleccionada
 let materia = "General";
 
@@ -373,6 +392,7 @@ let modo = "explicar";
 
 // Seleccionar materia
 function seleccionarMateria(boton, nombre) {
+
     materia = nombre;
 
     let botones = document.querySelectorAll(".materia");
@@ -389,6 +409,7 @@ function seleccionarMateria(boton, nombre) {
 
 // Mostrar mensaje
 function mostrarMensaje(texto, tipo) {
+
     let chat = document.getElementById("chat");
 
     document.getElementById("bienvenida").style.display = "none";
@@ -412,7 +433,7 @@ document.getElementById("formulario")
     let pregunta = document.getElementById("pregunta");
     let texto = pregunta.value.trim();
 
-    if (texto == "") {
+    if (texto === "") {
         alert("Escribí una pregunta primero.");
         return;
     }
@@ -422,41 +443,49 @@ document.getElementById("formulario")
         return;
     }
 
-    mostrarMensaje(texto, "usuario");
+    enviarPregunta(texto);
 
-    historial.push("Pregunta: " + texto);
-
-    pregunta.value = "";
-
-    responder(texto);
 });
 
-// Conexión con el servidor de IA
-async function responder(texto) {
+// Enviar pregunta al servidor
+async function enviarPregunta(texto) {
 
     let estado = document.getElementById("estado");
+    let boton = document.getElementById("enviar");
+
+    mostrarMensaje(texto, "usuario");
+
+    historial.push({
+        role: "user",
+        content: texto
+    });
+
+    document.getElementById("pregunta").value = "";
 
     estado.textContent = "EDU AI está pensando...";
 
+    boton.disabled = true;
+
     try {
 
-        const respuesta = await fetch(
-            "http://localhost:3000/api/chat",
-            {
-                method: "POST",
+        const respuesta = await fetch(API_URL, {
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
+            method: "POST",
 
-                body: JSON.stringify({
-                    question: texto,
-                    subject: materia,
-                    mode: modo,
-                    history: []
-                })
-            }
-        );
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+
+                question: texto,
+                materia: materia,
+                mode: modo,
+                history: historial.slice(0, -1)
+
+            })
+
+        });
 
         const datos = await respuesta.json();
 
@@ -464,53 +493,75 @@ async function responder(texto) {
             throw new Error(datos.error || "Error de conexión");
         }
 
-        mostrarMensaje(datos.answer, "asistente");
+        // El servidor devuelve la respuesta en reply
+        let respuestaIA = datos.reply;
 
-        historial.push("Respuesta: " + datos.answer);
+        if (!respuestaIA) {
+            throw new Error("El servidor no devolvió una respuesta.");
+        }
+
+        mostrarMensaje(respuestaIA, "asistente");
+
+        historial.push({
+            role: "assistant",
+            content: respuestaIA
+        });
 
         estado.textContent = "Respuesta generada por EDU AI.";
+
+        // Volver al modo normal
+        modo = "explicar";
 
     } catch (error) {
 
         mostrarMensaje(
-            "No se pudo conectar con la IA. El servidor debe estar encendido y publicado para utilizar esta función.",
+            "No se pudo conectar con la IA. Revisá que el servidor esté funcionando.",
             "asistente"
         );
 
         estado.textContent = "Error de conexión.";
+
+        console.error(error);
+
     }
+
+    boton.disabled = false;
 }
 
 // Preguntas de ejemplo
 function preguntaEjemplo(texto) {
-    document.getElementById("pregunta").value = texto;
-    responderDesdeEjemplo(texto);
-}
 
-function responderDesdeEjemplo(texto) {
-    mostrarMensaje(texto, "usuario");
-    historial.push("Pregunta: " + texto);
-    responder(texto);
+    enviarPregunta(texto);
+
 }
 
 // Crear resumen
 function modoResumen() {
+
     modo = "summary";
 
     document.getElementById("estado").textContent =
     "Modo resumen activado. Escribí o pegá un texto.";
+
+    document.getElementById("pregunta").focus();
+
 }
 
 // Traducir
 function modoTraducir() {
+
     modo = "translate";
 
     document.getElementById("estado").textContent =
     "Modo traducción activado. Indicá a qué idioma traducir.";
+
+    document.getElementById("pregunta").focus();
+
 }
 
 // Nueva consulta
 function nuevoChat() {
+
     document.getElementById("chat").innerHTML = "";
 
     historial = [];
@@ -519,19 +570,26 @@ function nuevoChat() {
 
     document.getElementById("estado").textContent =
     "Nueva consulta iniciada.";
+
+    modo = "explicar";
+
 }
 
 // Borrar historial
 function borrarHistorial() {
+
     nuevoChat();
 
     document.getElementById("estado").textContent =
     "Historial borrado.";
+
 }
 
 // Cambiar tema
 function cambiarTema() {
+
     document.body.classList.toggle("claro");
+
 }
 
 </script>
